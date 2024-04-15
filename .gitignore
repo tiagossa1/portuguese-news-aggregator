@@ -741,3 +741,6 @@ $RECYCLE.BIN/
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudio,visualstudiocode,csharp,rider
+
+# Ignore prod appsettings.json
+appsettings.Production.json
