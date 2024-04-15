@@ -27,11 +27,11 @@ public class JobWorker : BackgroundService
             .WithIdentity(nameof(NewsReaderJob), "JobGroup")
             .Build();
 
+        // Trigger for every day at 9am and 5pm.
         var trigger = TriggerBuilder.Create()
             .WithIdentity($"{nameof(NewsReaderJob)}Trigger", "TriggerGroup")
             .StartNow()
-            .WithSimpleSchedule(simpleScheduleBuilder => simpleScheduleBuilder
-                .WithIntervalInHours(1))
+            .WithCronSchedule("0 0 9,17 * * ? *")
             .Build();
 
         var schedulerFactory = SchedulerBuilder.Create().Build();
