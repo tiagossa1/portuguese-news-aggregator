@@ -1,3 +1,4 @@
+using System.Reflection;
 using Application.Interfaces;
 using Application.Jobs;
 using Application.Models;
@@ -30,10 +31,13 @@ public static class DependencyContainer
             .AddScoped<IRssNewsReader, NoticiasAoMinutoNewsReader>()
             .AddScoped<IJsonNewsReaderService, JsonNewsReaderService>()
             .AddScoped<IRssNewsReaderService, RssNewsReaderService>()
-            .AddScoped<INewsRepository, NewsRepository>()
+            .AddSingleton<INewsRepository, NewsRepository>(services =>
+            {
+                var path = Path.Combine(Path.GetDirectoryName(Assembly.GetEntryAssembly().Location), "newsDatabase.db");
+                return new NewsRepository(services.GetService<ILogger<NewsRepository>>(), path);
+            })
             .Configure<QuartzOptions>(config.GetSection("Quartz"))
             .AddScoped<NewsReaderJob>()
-            .Configure<MongoConnectionOptions>(options => config.GetSection("MongoConnection").Bind(options))
             .Configure<NewsWebsites>(options => config
                 .GetSection("NewsWebsites")
                 .Bind(options))

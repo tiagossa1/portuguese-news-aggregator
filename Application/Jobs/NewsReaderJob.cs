@@ -46,7 +46,6 @@ public class NewsReaderJob : IJob
                 .Concat(rssNewsResult)
                 .Select(newsArticle => new News
                 {
-                    Id = newsArticle.Id,
                     Source = newsArticle.Source,
                     Title = newsArticle.Title,
                     CreatedAt = newsArticle.CreatedAt,
@@ -63,7 +62,7 @@ public class NewsReaderJob : IJob
                 })
                 .ToList();
 
-            await _newsRepository.CreateRange(allNewsFromSources);
+            _newsRepository.CreateRangeIfNotExists(allNewsFromSources);
         }
         catch (Exception e)
         {

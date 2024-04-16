@@ -1,66 +1,70 @@
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Domain.Entities;
 using Domain.Interfaces;
+using LiteDB;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using MongoDB.Driver;
 
 namespace Database.Repositories;
 
 public class NewsRepository : INewsRepository
 {
-    private const string CollectionName = "news";
+    private const string _newsCollectionName = "News";
+    private readonly string _databasePath;
 
     private readonly ILogger<NewsRepository> _logger;
-    private readonly IMongoDatabase _mongoDatabase;
-    private readonly IMongoCollection<News> _collection;
 
-    public NewsRepository(IOptions<MongoConnectionOptions> options, ILogger<NewsRepository> logger)
+    public NewsRepository(
+        ILogger<NewsRepository> logger,
+        string databasePath)
     {
         _logger = logger;
-
-        _logger.LogInformation(JsonSerializer.Serialize(options.Value));
-
-        var mongoClient = new MongoClient(options.Value.ConnectionString);
-        _mongoDatabase = mongoClient.GetDatabase(options.Value.DatabaseName);
-        _collection = _mongoDatabase.GetCollection<News>(CollectionName);
+        _databasePath = databasePath;
     }
 
-    public async Task CreateRange(IList<News> newsList)
+    public void CreateRangeIfNotExists(IList<News> newsArticlesList)
     {
         try
         {
-            var dbNews = await _collection.Find(_ => true).ToListAsync();
+            using var db = new LiteDatabase(_databasePath);
 
-            var newsToInsert = new List<News>();
+            var col = db.GetCollection<News>(_newsCollectionName);
 
-            foreach (var article in newsList)
-            {
-                var exists = dbNews.Any(news => news.SourceId.Equals(article.SourceId, StringComparison.InvariantCultureIgnoreCase));
-                if (!exists)
-                {
-                    _logger.LogInformation("{newsRepository}.{createRange}: upserting news '{articleTitle}'", nameof(NewsCategory), nameof(CreateRange), article.Title);
+            var newsIdsToIgnore = col
+                .Query()
+                .Where(news => !newsArticlesList
+                    .Select(newsArticle => newsArticle.SourceId)
+                    .Any(newsArticleSourceId => newsArticleSourceId
+                        .Equals(news.SourceId, StringComparison.InvariantCultureIgnoreCase)))
+                .Select(news => news.Id)
+                .ToList() ?? [];
 
-                    newsToInsert.Add(article);
-                }
-            }
+            var newsToInsert = newsArticlesList
+                .Where(newsArticle => !newsIdsToIgnore.Contains(newsArticle.Id));
 
-            if (newsToInsert.Count > 0)
-            {
-                await _collection.InsertManyAsync(newsToInsert);
-            }
+            col.InsertBulk(newsToInsert);
+            col.EnsureIndex(news => news.Id);
         }
         catch (Exception e)
         {
-            _logger.LogError("{newsRepository}.{createRange}: there was an error upserting the document: {exception}", nameof(NewsCategory), nameof(CreateRange), e.ToString());
+            _logger.LogError("{newsRepository}.{createRange}: there was an error upserting the document: {exception}", nameof(NewsCategory), nameof(CreateRangeIfNotExists), e.ToString());
         }
     }
 
-    public async Task<IList<News>> GetAll()
+    public IList<News> GetAll()
     {
-        return await _collection
-            .Find(f => true)
-            .ToListAsync();
+        try
+        {
+            using var db = new LiteDatabase(_databasePath);
+            var col = db.GetCollection<News>(_newsCollectionName);
+
+            return col
+                .FindAll()
+                .ToList();
+        }
+        catch (Exception e)
+        {
+            _logger.LogError("{newsRepository}.{createRange}: there was an error getting all news: {exception}", nameof(NewsCategory), nameof(GetAll), e.ToString());
+
+            return [];
+        }
     }
 }

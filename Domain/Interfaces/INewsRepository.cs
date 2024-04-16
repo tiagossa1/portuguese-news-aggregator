@@ -4,7 +4,7 @@ namespace Domain.Interfaces;
 
 public interface INewsRepository
 {
-    Task CreateRange(IList<News> newsList);
+    void CreateRangeIfNotExists(IList<News> newsList);
 
-    Task<IList<News>> GetAll();
+    IList<News> GetAll();
 }
