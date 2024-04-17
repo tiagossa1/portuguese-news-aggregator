@@ -37,15 +37,16 @@ public class ObservadorJsonNewsReader : IJsonNewsReader
                 NewsCategories =
                     !string.IsNullOrWhiteSpace(news.Tag)
                         ?
-                        [
-                            new NewsCategory
+                        new List<NewsCategory>
+                        {
+                            new()
                             {
                                 Code = news.Tag.ToUpperInvariant(),
                                 Name = news.Tag
                             }
-                        ]
-                        : []
+                        }
+                        : new List<NewsCategory>(0)
             })
-            .ToList() ?? [];
+            .ToList() ?? new List<NewsArticle>();
     }
 }

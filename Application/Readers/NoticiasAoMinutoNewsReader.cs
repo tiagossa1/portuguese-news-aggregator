@@ -3,7 +3,6 @@ using System.Xml;
 using Application.Constants;
 using Application.Interfaces;
 using Application.Models;
-using NewsCategory = Domain.Entities.NewsCategory;
 
 namespace Application.Readers;
 
@@ -32,8 +31,8 @@ public class NoticiasAoMinutoNewsReader : IRssNewsReader
                     Code = category.Name.ToUpperInvariant(),
                     Name = category.Name
                 })
-                .ToList() ?? []
+                .ToList() ?? new List<Models.NewsCategory>(0)
             })
-            .ToList() ?? [];
+            .ToList() ?? new List<NewsArticle>();
     }
 }

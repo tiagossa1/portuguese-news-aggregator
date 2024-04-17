@@ -35,7 +35,7 @@ public class NewsRepository : INewsRepository
                     .Any(newsArticleSourceId => newsArticleSourceId
                         .Equals(news.SourceId, StringComparison.InvariantCultureIgnoreCase)))
                 .Select(news => news.Id)
-                .ToList() ?? [];
+                .ToList() ?? new List<ObjectId>(0);
 
             var newsToInsert = newsArticlesList
                 .Where(newsArticle => !newsIdsToIgnore.Contains(newsArticle.Id));
@@ -64,7 +64,7 @@ public class NewsRepository : INewsRepository
         {
             _logger.LogError("{newsRepository}.{createRange}: there was an error getting all news: {exception}", nameof(NewsCategory), nameof(GetAll), e.ToString());
 
-            return [];
+            return Array.Empty<News>();
         }
     }
 }

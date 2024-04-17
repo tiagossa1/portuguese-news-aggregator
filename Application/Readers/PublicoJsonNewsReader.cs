@@ -35,15 +35,15 @@ public class PublicoJsonNewsReader : IJsonNewsReader
                 NewsCategories =
                     !string.IsNullOrWhiteSpace(news.Rubrica)
                         ?
-                        [
-                            new NewsCategory
+                        new List<NewsCategory> {
+                            new()
                             {
                                 Code = news.Rubrica.ToUpperInvariant(),
                                 Name = news.Rubrica
                             }
-                        ]
-                        : []
+                        }
+                        : new List<NewsCategory>(0)
             })
-            .ToList() ?? [];
+            .ToList() ?? new List<NewsArticle>(0);
     }
 }

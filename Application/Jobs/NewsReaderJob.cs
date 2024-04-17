@@ -26,7 +26,7 @@ public class NewsReaderJob : IJob
         _jsonNewsReaderService = jsonNewsReaderService;
         _rssNewsReaderService = rssNewsReaderService;
         _newsRepository = newsRepository;
-        _newsWebsites = newsWebsites.Value?.Sources ?? [];
+        _newsWebsites = newsWebsites.Value?.Sources ?? new List<NewsWebsite>(0);
         _logger = logger;
     }
 
@@ -36,11 +36,11 @@ public class NewsReaderJob : IJob
         {
             var jsonNewsResult = await _jsonNewsReaderService.Read(_newsWebsites
                 ?.Where(newsWebsite => NewsTypeConstants.Json.Equals(newsWebsite.Type, StringComparison.InvariantCultureIgnoreCase))
-                .ToArray() ?? []);
+                .ToArray() ?? Array.Empty<NewsWebsite>());
 
             var rssNewsResult = _rssNewsReaderService.Read(_newsWebsites
                 ?.Where(newsWebsite => NewsTypeConstants.Rss.Equals(newsWebsite.Type, StringComparison.InvariantCultureIgnoreCase))
-                .ToArray() ?? []);
+                .ToArray() ?? Array.Empty<NewsWebsite>());
 
             var allNewsFromSources = jsonNewsResult
                 .Concat(rssNewsResult)
@@ -58,7 +58,7 @@ public class NewsReaderJob : IJob
                             Code = newsCategory.Code,
                             Name = newsCategory.Name
                         })
-                        .ToList() ?? []
+                        .ToList() ?? new List<Domain.Entities.NewsCategory>(0)
                 })
                 .ToList();
 

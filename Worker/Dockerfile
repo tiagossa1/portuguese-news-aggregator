@@ -1,12 +1,12 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:8.0 AS base
+﻿FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine3.18-arm64v8 AS base
 USER $APP_UID
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine3.18-arm64v8 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["Worker/Worker.csproj", "Worker/"]
-RUN dotnet restore "Worker/Worker.csproj"
+COPY ["Worker.csproj", "Worker/"]
+RUN dotnet restore "Worker.csproj"
 COPY . .
 WORKDIR "/src/Worker"
 RUN dotnet build "Worker.csproj" -c $BUILD_CONFIGURATION -o /app/build
