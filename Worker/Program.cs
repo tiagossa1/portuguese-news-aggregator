@@ -3,6 +3,7 @@ using Infrastructure;
 
 Host
     .CreateDefaultBuilder()
+    .UseSystemd()
     .ConfigureServices((hostContext, services) =>
     {
         services.AddProjectDependencies(hostContext.Configuration);
