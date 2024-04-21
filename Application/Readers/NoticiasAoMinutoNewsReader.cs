@@ -26,13 +26,13 @@ public class NoticiasAoMinutoNewsReader : IRssNewsReader
                 PublishDate = DateOnly.FromDateTime(news.PublishDate.Date),
                 SourceId = news.Links.ElementAtOrDefault(0)?.Uri?.AbsoluteUri ?? Guid.NewGuid().ToString(),
                 NewsCategories = news.Categories
-                ?.Select(category => new Application.Models.NewsCategory
+                ?.Select(category => new NewsCategory
                 {
                     Code = category.Name.ToUpperInvariant(),
                     Name = category.Name
                 })
-                .ToList() ?? new List<Models.NewsCategory>(0)
+                .ToList() ?? new List<NewsCategory>(0)
             })
-            .ToList() ?? new List<NewsArticle>();
+            .ToList() ?? new List<NewsArticle>(0);
     }
 }

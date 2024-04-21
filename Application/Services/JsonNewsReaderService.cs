@@ -20,10 +20,18 @@ public class JsonNewsReaderService : IJsonNewsReaderService
     public async Task<IList<NewsArticle>> Read(IList<NewsWebsite> newsWebsites)
     {
         var newsArticles = new List<NewsArticle>();
+
+        if (newsWebsites is null ||
+            newsWebsites.Count == 0)
+        {
+            return newsArticles;
+        }
+
         foreach (var newsWebsite in newsWebsites)
         {
-            var reader = _jsonNewsReaders.FirstOrDefault(reader =>
-                newsWebsite.Code.Equals(reader.Name, StringComparison.InvariantCultureIgnoreCase));
+            var reader = _jsonNewsReaders
+                .FirstOrDefault(reader =>
+                    newsWebsite.Code.Equals(reader.Name, StringComparison.InvariantCultureIgnoreCase));
 
             if (reader is null)
             {
@@ -32,7 +40,7 @@ public class JsonNewsReaderService : IJsonNewsReaderService
             }
 
             var readerResult = await reader.Read(newsWebsite);
-            if (readerResult is not null ||
+            if (readerResult is not null &&
                 readerResult.Count > 0)
             {
                 newsArticles.AddRange(readerResult);

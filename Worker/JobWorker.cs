@@ -31,7 +31,9 @@ public class JobWorker : BackgroundService
         var trigger = TriggerBuilder.Create()
             .WithIdentity($"{nameof(NewsReaderJob)}Trigger", "TriggerGroup")
             .StartNow()
-            .WithCronSchedule("0 0 9,17 * * ? *")
+            .WithSimpleSchedule(simpleSchedulerBuilder => simpleSchedulerBuilder
+                .WithIntervalInHours(1)
+                .RepeatForever())
             .Build();
 
         var schedulerFactory = SchedulerBuilder.Create().Build();
