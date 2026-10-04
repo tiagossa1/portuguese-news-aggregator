@@ -28,20 +28,14 @@ public class NewsRepository : INewsRepository
 
             var col = db.GetCollection<News>(_newsCollectionName);
 
-            var requestNewsArticleSourceIds = newsArticlesList
-                .Select(newsArticle => newsArticle.SourceId)
-                .ToList();
-
-            var newsIdsToIgnore = col
-                .Query()
-                .Where(news => !requestNewsArticleSourceIds
-                    .Any(newsArticleSourceId => newsArticleSourceId
-                        .Equals(news.SourceId, StringComparison.InvariantCultureIgnoreCase)))
-                .Select(news => news.SourceId)
-                .ToList() ?? new List<string>(0);
+            var existingKeys = col
+                .FindAll()
+                .Select(news => $"{news.Source}|{news.SourceId}")
+                .ToHashSet(StringComparer.InvariantCultureIgnoreCase);
 
             var newsToInsert = newsArticlesList
-                .Where(newsArticle => !newsIdsToIgnore.Contains(newsArticle.SourceId, StringComparer.InvariantCultureIgnoreCase));
+                .Where(newsArticle => existingKeys.Add($"{newsArticle.Source}|{newsArticle.SourceId}"))
+                .ToList();
 
             col.InsertBulk(newsToInsert);
             col.EnsureIndex(news => news.Id);
