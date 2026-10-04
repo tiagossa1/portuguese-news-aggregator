@@ -1,21 +1,15 @@
-﻿FROM mcr.microsoft.com/dotnet/runtime:8.0-alpine3.18-arm64v8 AS base
+﻿FROM mcr.microsoft.com/dotnet/runtime:10.0-alpine AS base
+RUN mkdir -p /app && chown $APP_UID /app
 USER $APP_UID
 WORKDIR /app
 
-FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine3.18-arm64v8 AS build
-ARG BUILD_CONFIGURATION=Release
+FROM mcr.microsoft.com/dotnet/sdk:10.0-alpine AS build
 WORKDIR /src
-COPY ["Worker.csproj", "Worker/"]
-RUN dotnet restore "Worker.csproj"
 COPY . .
-WORKDIR "/src/Worker"
-RUN dotnet build "Worker.csproj" -c $BUILD_CONFIGURATION -o /app/build
-
-FROM build AS publish
-ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "Worker.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN dotnet restore Worker/Worker.csproj
+RUN dotnet publish Worker/Worker.csproj -c Release -o /app/publish --no-restore /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
-COPY --from=publish /app/publish .
+COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "Worker.dll"]
